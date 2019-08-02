@@ -1,5 +1,7 @@
 import keras
 from keras.datasets import cifar10
+from keras.utils import np_utils
+
 import numpy as np
 
 class Cifar10_Dog_Cat:
@@ -9,11 +11,10 @@ class Cifar10_Dog_Cat:
         # cat
         self.USE_CIFAR10_LABEL2 = 3
         
-        self.__make_data()
         
         return
 
-    def __make_data(self):
+    def make_binary_data(self):
         # data
         (self.x_train, self.y_train), (self.x_test, self.y_test) = cifar10.load_data()
 
@@ -39,6 +40,35 @@ class Cifar10_Dog_Cat:
         self.x_train = (self.x_train - 122.5) / 255
         self.x_test = (self.x_test - 122.5) / 255
 
+        return
+
+    def make_onehot_data(self):
+        # data
+        (self.x_train, self.y_train), (self.x_test, self.y_test) = cifar10.load_data()
+
+        # exract target label (dog and cat)
+        target_idx_train = np.where(np.logical_or(np.all(self.y_train==self.USE_CIFAR10_LABEL1, axis=1), np.all(self.y_train==self.USE_CIFAR10_LABEL2, axis=1)))[0]
+        self.x_train = self.x_train[target_idx_train]
+        self.y_train = self.y_train[target_idx_train]
+
+        target_idx_test = np.where(np.logical_or(np.all(self.y_test==self.USE_CIFAR10_LABEL1, axis=1), np.all(self.y_test==self.USE_CIFAR10_LABEL2, axis=1)))[0]
+        self.x_test = self.x_test[target_idx_test]
+        self.y_test = self.y_test[target_idx_test]
+
+        # relabel
+        self.y_train[self.y_train==self.USE_CIFAR10_LABEL1] = 0
+        self.y_train[self.y_train==self.USE_CIFAR10_LABEL2] = 1
+
+        self.y_test[self.y_test==self.USE_CIFAR10_LABEL1] = 0
+        self.y_test[self.y_test==self.USE_CIFAR10_LABEL2] = 1
+
+        # to one-hot
+        self.y_train = np_utils.to_categorical(self.y_train, 2)
+        self.y_test = np_utils.to_categorical(self.y_test, 2)
+
+        # scaling
+        self.x_train = (self.x_train - 122.5) / 255
+        self.x_test = (self.x_test - 122.5) / 255
 
         return
 
@@ -80,5 +110,3 @@ class Cifar10_1Label:
         self.x_test = (self.x_test - 122.5) / 255
 
         return
-
-
