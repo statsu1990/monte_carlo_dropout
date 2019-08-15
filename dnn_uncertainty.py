@@ -130,7 +130,48 @@ def Test_2class_sigmoid():
     plot_predicted_y_mdcnn_vs_cnn(y_test_mdcnn, y_test_cnn, 'test', 
                                   os.path.join(SAVE_RESULT_DIR, 'predicted_prob_test.png'), None)
 
+    # ##########################
+    # ROC and AUC of test data
+    # ##########################
+    def roc_and_auc(_y, _pre_y, _std, save_file_name):
 
+        _posi_num = np.sum(_y > 0.5)
+        _nega_num = np.sum(_y < 0.5)
+
+        # tpf and fpr using y threshold
+        _threshold_y = np.linspace(0, 1, num=100)
+        _tpr1, _fpr1 = [], []
+        for _thre_y in _threshold_y:
+            _tpr1.append(np.sum(np.logical_and(_y > 0.5, _pre_y > _thre_y)) / _posi_num)
+            _fpr1.append(np.sum(np.logical_and(_y < 0.5, _pre_y > _thre_y)) / _nega_num)
+
+        # tpf and fpr using y + std threshold
+        _threshold_a = np.tan(np.linspace(-pi*0.5+1e-6, pi*0.5-1e-6, num=100))
+        _tpr2, _fpr2 = [], []
+        for _thre_a in _threshold_a:
+            _tpr2.append(np.sum(np.logical_and(_y > 0.5, _pre_y > 0.5 + _thre_a * _std)) / _posi_num)
+            _fpr2.append(np.sum(np.logical_and(_y < 0.5, _pre_y > 0.5 + _thre_a * _std)) / _nega_num)
+
+        # fig
+        _fig = plt.figure()
+        _ax = _fig.add_subplot(111)
+        _ax.plot(_fpr1, _tpr1, label='threshold = y')
+        _ax.plot(_fpr2, _tpr2, label='threshold = 0.5 + a * std')
+        _ax.set_xlim(0, 1)
+        _ax.set_ylim(0, 1)
+        _ax.set_title('ROC curve')
+        _ax.set_xlabel('FPR')
+        _ax.set_ylabel('TPR')
+        _ax.grid(which='major',color='black',linestyle='-')
+        _ax.plot([0,1], [0,1], color = "black")
+        _ax.legend()
+        _fig.savefig(save_file_name)
+        plt.clf()
+
+        return
+
+    roc_and_auc(dog_cat.y_test, y_test_mdcnn, std_test, os.path.join(SAVE_RESULT_DIR, 'roc_curve.png'))
+    
     # ###############################
     # histgram of std of predicted y
     # ###############################
